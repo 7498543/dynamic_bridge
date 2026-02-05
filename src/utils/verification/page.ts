@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { PageSchema } from "@/types/schema";
+import { z } from 'zod';
+import { PageSchema } from '@/types/schema';
 
 /**
  * 页面结构验证
  */
 export const pageSchema = z.object({
-  layout: z.literal("default"),
-  blocks: z.array(z.any()),
+	layout: z.literal('default'),
+	blocks: z.array(z.any()),
 });
 
 /**
@@ -15,7 +15,7 @@ export const pageSchema = z.object({
  * @returns 验证结果
  */
 export function validatePage(page: any): page is PageSchema {
-  return pageSchema.safeParse(page).success;
+	return pageSchema.safeParse(page).success;
 }
 
 /**
@@ -24,5 +24,5 @@ export function validatePage(page: any): page is PageSchema {
  * @returns 验证结果
  */
 export function validatePages(pages: any[]): pages is PageSchema[] {
-  return Array.isArray(pages) && pages.every(validatePage);
+	return Array.isArray(pages) && pages.every(validatePage);
 }

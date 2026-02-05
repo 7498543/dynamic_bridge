@@ -1,22 +1,24 @@
-import { PageSchema, PageLayout } from "@/types/schema";
-import { normalizeBlock } from "./block";
+import { PageSchema, PageLayout } from '@/types/schema';
+import { normalizeBlock } from './block';
 /**
  * 标准化页面对象
  * @param page 页面对象
  * @returns
  */
 export function normalizePage(page: any): PageSchema {
-  if (!page || typeof page !== "object") {
-    return {
-      layout: PageLayout.Default,
-      blocks: [],
-    };
-  }
+	if (!page || typeof page !== 'object') {
+		return {
+			layout: PageLayout.Default,
+			blocks: [],
+		};
+	}
 
-  return {
-    layout: page?.layout || PageLayout.Default,
-    blocks: Array.isArray(page?.blocks) ? page.blocks.map(normalizeBlock) : [],
-  };
+	return {
+		layout: page?.layout || PageLayout.Default,
+		blocks: Array.isArray(page?.blocks)
+			? page.blocks.map(normalizeBlock)
+			: [],
+	};
 }
 
 /**
@@ -25,5 +27,5 @@ export function normalizePage(page: any): PageSchema {
  * @returns 标准化后的页面数组
  */
 export function normalizePages(pages: any[]): PageSchema[] {
-  return Array.isArray(pages) ? pages.map(normalizePage) : [];
+	return Array.isArray(pages) ? pages.map(normalizePage) : [];
 }
