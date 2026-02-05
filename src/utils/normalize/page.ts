@@ -1,4 +1,4 @@
-import { PageSchema } from "@/types/schema";
+import { PageSchema, PageLayout } from "@/types/schema";
 import { normalizeBlock } from "./block";
 /**
  * 标准化页面对象
@@ -8,13 +8,13 @@ import { normalizeBlock } from "./block";
 export function normalizePage(page: any): PageSchema {
   if (!page || typeof page !== "object") {
     return {
-      layout: "default",
+      layout: PageLayout.Default,
       blocks: [],
     };
   }
 
   return {
-    layout: page?.layout || "default",
+    layout: page?.layout || PageLayout.Default,
     blocks: Array.isArray(page?.blocks) ? page.blocks.map(normalizeBlock) : [],
   };
 }

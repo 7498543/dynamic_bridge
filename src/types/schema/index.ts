@@ -1,5 +1,5 @@
-export type * from "./block";
-export type * from "./interface";
-export type * from "./i18n";
-export type * from "./seo";
-export type * from "./pages";
+export * from "./block";
+export * from "./interface";
+export * from "./i18n";
+export * from "./seo";
+export * from "./pages";
