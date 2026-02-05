@@ -1,9 +1,14 @@
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
+
 export default {
-  input: "src/index",
-  output: {
-    file: "dist/index",
-    format: "umd",
-    name: "dynamic_bridge",
-  },
-  plugins: [resolve(), commonjs()],
+	input: 'src/index.ts',
+	output: {
+		file: 'dist/index.js',
+		format: 'umd',
+		name: 'dynamic_bridge',
+		indent: 2,
+	},
+	plugins: [resolve(), commonjs(), typescript()],
 };
