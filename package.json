@@ -2,13 +2,25 @@
   "name": "dynamic_bridge",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "ts"
+    "typescript"
   ],
   "author": "qyj01",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@types/node": "^25.2.0",
+    "rollup": "^4.57.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "vue": "^3.5.27",
+    "zod": "^4.3.6"
+  }
 }
