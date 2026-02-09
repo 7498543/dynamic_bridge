@@ -1,5 +1,5 @@
 import type { Manifest } from '@/types/registry';
-import { manifestSchema } from './schema';
+import { ManifestSchema } from '../validator/manifest';
 
 /**
  * 标准化组件 manifest 配置
@@ -11,7 +11,7 @@ import { manifestSchema } from './schema';
  * @throws 当校验失败时会抛出 zod 的验证错误
  */
 export function normalizeManifest(value: unknown): Manifest {
-    const result = manifestSchema.parse(value);
+    const result = ManifestSchema.parse(value) as Manifest;
     return result;
 }
 

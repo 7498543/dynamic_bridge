@@ -1,6 +1,6 @@
 import type { Manifest } from '@/types/registry';
 import type { RegisterSchema, Registry } from '@/types/registry/core';
-import { normalizeManifest } from './normalize';
+import { normalizeManifest } from './manifest/normalize';
 
 /**
  * 单个组件注册入参
