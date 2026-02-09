@@ -4,7 +4,7 @@ import { Manifest } from '@/types/registry/manifest';
 /**
  * 组件 i18n 配置验证器
  */
-export const i18nSchema = z.object({
+export const ManifestI18nSchema = z.object({
     defaultLocale: z.string(),
     locales: z.array(z.object({
         code: z.string(),
@@ -16,7 +16,7 @@ export const i18nSchema = z.object({
 /**
  * 组件注册 manifest 配置文件验证器
  */
-export const manifestSchema = z.object({
+export const ManifestSchema = z.object({
     author: z.string().optional(),
     keywords: z.array(z.string()).optional(),
     name: z.string(),
@@ -24,10 +24,8 @@ export const manifestSchema = z.object({
     description: z.string().optional(),
     source: z.literal('core').or(z.literal('external')),
     path: z.string(),
-    i18n: i18nSchema.optional(),
+    i18n: ManifestI18nSchema.optional(),
 })
-
-
 
 /**
  * 验证组件注册 manifest 配置文件
@@ -35,5 +33,5 @@ export const manifestSchema = z.object({
  * @returns 验证结果
  */
 export function validateManifest(manifest: any): manifest is Manifest {
-    return manifestSchema.safeParse(manifest).success;
+    return ManifestSchema.safeParse(manifest).success;
 }

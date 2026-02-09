@@ -1,4 +1,3 @@
 export * from './normalize';
-export * from './verification';
-export * from './registry';
-
+export * from './schema';
+export * from './register';

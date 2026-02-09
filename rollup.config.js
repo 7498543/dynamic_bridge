@@ -7,7 +7,7 @@ export default {
 	output: {
 		file: 'dist/index.js',
 		format: 'umd',
-		name: 'dynamic_bridge',
+		name: 'dynamic_core',
 		indent: 2,
 	},
 	plugins: [resolve(), commonjs(), typescript()],
