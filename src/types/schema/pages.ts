@@ -1,30 +1,23 @@
 import { BlockSchema } from './block';
+import { I18nMapSchema } from './i18n';
+import { SeoSchema } from './seo';
 
 export enum PageLayout {
-	/**
-	 * 默认布局
-	 */
 	Default = 'default',
-	/**
-	 * 空白页
-	 */
 	Blank = 'blank',
 }
 
-export type PageLayoutType = PageLayout[keyof PageLayout];
+export type PageLayoutType = `${PageLayout}` | string;
 
-/**
- * 页面配置
- */
-interface PageSchema {
-	/**
-	 * 页面布局
-	 */
+interface PageContentSchema {
 	layout: PageLayoutType;
-	/**
-	 * 页面内容
-	 */
 	blocks: BlockSchema[];
 }
 
-export { PageSchema };
+interface PageSchema {
+	page: PageContentSchema;
+	seo: SeoSchema;
+	i18nMap?: I18nMapSchema;
+}
+
+export { PageContentSchema, PageSchema };

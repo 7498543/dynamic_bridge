@@ -1,8 +1,5 @@
-/**
- * 国际化配置
- */
-interface I18nSchema {
-	[key: string]: Record<string, any>;
+interface I18nMapSchema {
+	[key: string]: string;
 }
 
-export { I18nSchema };
+export { I18nMapSchema };

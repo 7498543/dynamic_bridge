@@ -1,15 +1,10 @@
 import {
 	BlockSchema,
+	ClassSchema,
 	ComponentSlots,
 	StyleSchema,
-	ClassSchema,
 } from '@/types/schema';
 
-/**
- * 标准化类名
- * @param className 类名
- * @returns 标准化后的类名
- */
 export function normalizeClass(className: ClassSchema): string {
 	if (!className) return '';
 
@@ -23,7 +18,7 @@ export function normalizeClass(className: ClassSchema): string {
 
 	if (typeof className === 'object') {
 		return Object.entries(className)
-			.filter(([_, value]) => value)
+			.filter(([, value]) => Boolean(value))
 			.map(([key]) => key)
 			.join(' ');
 	}
@@ -31,105 +26,80 @@ export function normalizeClass(className: ClassSchema): string {
 	return '';
 }
 
-/**
- * 标准化样式对象
- * @param style 样式对象
- * @returns 标准化后的样式对象
- */
-export function normalizeStyle(style: StyleSchema): Record<string, any> {
+export function normalizeStyle(style: StyleSchema): Record<string, any> | string {
 	if (!style) return {};
+
+	if (typeof style === 'string') {
+		return style;
+	}
 
 	if (typeof style === 'object') {
 		return style;
 	}
 
-	if (typeof style === 'string') {
-		return style.split(';').reduce(
-			(acc, cur) => {
-				const [key, value] = cur.split(':');
-				if (key && value) {
-					acc[key.trim()] = value.trim();
-				}
-				return acc;
-			},
-			{} as Record<string, any>
-		);
-	}
-
 	return {};
 }
 
-/**
- * 标准化插槽对象
- * @param slots 插槽对象
- * @returns 标准化后的插槽对象
- */
-export function normalizeSlots(slots: ComponentSlots): ComponentSlots {
+export function normalizeSlots(slots: ComponentSlots, parentId = 'block'): ComponentSlots {
 	if (!slots) return {};
 
-	// 确保插槽对象是一个对象
 	if (typeof slots === 'string') {
-		// 如果是字符串，包装成 Text 组件 承接文本
 		return {
 			default: [
 				{
+					id: `${parentId}:default:0`,
 					component: 'Text',
-					componentProps: {
+					props: {
 						text: slots,
 					},
-					componentSlots: {},
 				},
 			],
 		};
 	}
 
-	if (typeof slots === 'object') {
-		const normalized: ComponentSlots = {};
+	const normalized: Record<string, string | BlockSchema[]> = {};
 
-		for (const [key, value] of Object.entries(slots)) {
-			if (Array.isArray(value)) {
-				normalized[key] = value;
-			} else {
-				normalized[key] = [];
-			}
+	for (const [slotName, value] of Object.entries(slots)) {
+		if (typeof value === 'string') {
+			normalized[slotName] = value;
+			continue;
 		}
 
-		return normalized;
+		normalized[slotName] = Array.isArray(value)
+			? value.map((block, index) => normalizeBlock(block, `${parentId}:${slotName}:${index}`))
+			: [];
 	}
 
-	return {};
+	return normalized;
 }
 
-/**
- * 标准化块对象
- * @param block 块对象
- * @returns 标准化后的块对象
- */
-export function normalizeBlock(block: any): BlockSchema {
+export function normalizeBlock(block: any, fallbackId = 'block'): BlockSchema {
 	if (!block || typeof block !== 'object') {
 		return {
+			id: fallbackId,
 			component: '',
-			componentProps: {},
+			props: {},
 			componentSlots: {},
+			style: {},
 		};
 	}
 
+	const props = block.props ?? block.componentProps ?? {};
+
 	return {
+		id: block.id || fallbackId,
 		component: block.component || '',
-		componentProps: {
-			...block.componentProps,
-			style: normalizeStyle(block.componentProps?.style),
-			class: normalizeClass(block.componentProps?.class),
+		props: {
+			...props,
+			class: normalizeClass(props.class),
 		},
-		componentSlots: normalizeSlots(block.componentSlots),
+		componentSlots: normalizeSlots(block.componentSlots, block.id || fallbackId),
+		style: normalizeStyle(block.style),
 	};
 }
 
-/**
- * 标准化块数组
- * @param blocks 块数组
- * @returns 标准化后的块数组
- */
 export function normalizeBlocks(blocks: any[]): BlockSchema[] {
-	return blocks.map(normalizeBlock);
+	return Array.isArray(blocks)
+		? blocks.map((block, index) => normalizeBlock(block, `block:${index}`))
+		: [];
 }

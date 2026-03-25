@@ -1,20 +1,18 @@
 import { z } from 'zod';
 import { BlockSchema } from '@/types/schema';
 
-/**
- * 代码块结构验证
- */
-export const blockSchema = z.object({
+const slotValueSchema = z.union([z.string(), z.array(z.lazy(() => blockSchema))]);
+
+export const blockSchema: z.ZodType<BlockSchema> = z.object({
+	id: z.string(),
 	component: z.string(),
-	componentProps: z.object({}).passthrough(),
-	componentSlots: z.union([z.string(), z.object({}).passthrough()]),
+	props: z.object({}).passthrough().optional(),
+	componentSlots: z
+		.union([z.string(), z.record(z.string(), slotValueSchema)])
+		.optional(),
+	style: z.union([z.string(), z.object({}).passthrough()]).optional(),
 });
 
-/**
- * 验证代码块对象
- * @param block 代码块对象
- * @returns 验证结果
- */
 export function validateBlockSchema(block: any): block is BlockSchema {
 	return blockSchema.safeParse(block).success;
 }

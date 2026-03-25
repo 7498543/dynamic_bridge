@@ -1,61 +1,31 @@
-import { ComponentCustomProps, CSSProperties } from 'vue';
+import type { ComponentCustomProps, CSSProperties } from 'vue';
 
-/**
- * 组件属性
- */
+interface RuntimeDirective {
+	hydration?: 'visible';
+}
+
 interface ComponentProps extends ComponentCustomProps {
-	/**
-	 * 组件唯一标识
-	 */
-	id?: string;
-
-	/**
-	 * 组件样式
-	 */
-	style?: string | CSSProperties | Record<string, any>;
-
-	/**
-	 * 组件类名
-	 */
 	class?: string | string[] | Record<string, boolean>;
-
 	[key: string]: any;
 }
 
-type StyleSchema = ComponentProps['style'];
+type StyleSchema = string | CSSProperties | Record<string, any>;
 type ClassSchema = ComponentProps['class'];
+type ComponentSlots = string | Record<string, string | BlockSchema[]>;
 
-/**
- * 组件插槽
- */
-type ComponentSlots = string | Record<string, BlockSchema[]>;
-
-/**
- * 代码块结构体
- */
 interface BlockSchema {
-	/**
-	 * 组件唯一标识
-	 */
-	id?: string;
-	/**
-	 * 组件名称
-	 */
+	id: string;
 	component: string;
-	/**
-	 * 组件属性
-	 */
-	componentProps: ComponentProps;
-	/**
-	 * 组件插槽
-	 */
-	componentSlots: ComponentSlots;
+	props?: ComponentProps;
+	componentSlots?: ComponentSlots;
+	style?: StyleSchema;
 }
 
 export {
-	ComponentProps,
-	ComponentSlots,
 	BlockSchema,
 	ClassSchema,
+	ComponentProps,
+	ComponentSlots,
+	RuntimeDirective,
 	StyleSchema,
 };

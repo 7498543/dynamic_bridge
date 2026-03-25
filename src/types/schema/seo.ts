@@ -1,17 +1,13 @@
 interface AlternateSchema {
 	href: string;
-	lang: string;
-	rel: string;
+	hreflang: string;
 }
 
-/**
- * 页面SEO配置
- */
 interface SeoSchema {
 	title: string;
 	description: string;
-	keywords: string[];
-	alternate: AlternateSchema[];
+	canonical?: string;
+	alternate?: AlternateSchema[];
 }
 
-export { SeoSchema };
+export { AlternateSchema, SeoSchema };
