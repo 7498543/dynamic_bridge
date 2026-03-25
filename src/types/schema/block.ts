@@ -35,6 +35,10 @@ type ComponentSlots = string | Record<string, BlockSchema[]>;
  */
 interface BlockSchema {
 	/**
+	 * 组件唯一标识
+	 */
+	id?: string;
+	/**
 	 * 组件名称
 	 */
 	component: string;
