@@ -1,6 +1,6 @@
 {
   "name": "@qyj01/dynamic_core",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
@@ -31,5 +31,8 @@
   "dependencies": {
     "vue": "^3.5.27",
     "zod": "^4.3.6"
+  },
+  "config": {
+    "commit-hooks": false
   }
 }
