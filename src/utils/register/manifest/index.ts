@@ -1,1 +1,1 @@
-export * from './install';
+export * from './normalize';

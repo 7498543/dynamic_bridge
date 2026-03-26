@@ -3,7 +3,7 @@ import {
 	ClassSchema,
 	ComponentSlots,
 	StyleSchema,
-} from '@/types/schema';
+} from '../../../types/schema';
 
 export function normalizeClass(className: ClassSchema): string {
 	if (!className) return '';
@@ -26,7 +26,9 @@ export function normalizeClass(className: ClassSchema): string {
 	return '';
 }
 
-export function normalizeStyle(style: StyleSchema): Record<string, any> | string {
+export function normalizeStyle(
+	style: StyleSchema
+): Record<string, any> | string {
 	if (!style) return {};
 
 	if (typeof style === 'string') {
@@ -40,33 +42,42 @@ export function normalizeStyle(style: StyleSchema): Record<string, any> | string
 	return {};
 }
 
-export function normalizeSlots(slots: ComponentSlots, parentId = 'block'): ComponentSlots {
+function createTextBlock(text: string, id: string): BlockSchema {
+	return {
+		id,
+		component: 'Text',
+		props: {
+			text,
+		},
+	};
+}
+
+export function normalizeSlots(
+	slots: ComponentSlots,
+	parentId = 'block'
+): Record<string, BlockSchema[]> {
 	if (!slots) return {};
 
 	if (typeof slots === 'string') {
 		return {
-			default: [
-				{
-					id: `${parentId}:default:0`,
-					component: 'Text',
-					props: {
-						text: slots,
-					},
-				},
-			],
+			default: [createTextBlock(slots, `${parentId}:default:0`)],
 		};
 	}
 
-	const normalized: Record<string, string | BlockSchema[]> = {};
+	const normalized: Record<string, BlockSchema[]> = {};
 
 	for (const [slotName, value] of Object.entries(slots)) {
 		if (typeof value === 'string') {
-			normalized[slotName] = value;
+			normalized[slotName] = [
+				createTextBlock(value, `${parentId}:${slotName}:0`),
+			];
 			continue;
 		}
 
 		normalized[slotName] = Array.isArray(value)
-			? value.map((block, index) => normalizeBlock(block, `${parentId}:${slotName}:${index}`))
+			? value.map((block, index) =>
+					normalizeBlock(block, `${parentId}:${slotName}:${index}`)
+				)
 			: [];
 	}
 
@@ -93,7 +104,10 @@ export function normalizeBlock(block: any, fallbackId = 'block'): BlockSchema {
 			...props,
 			class: normalizeClass(props.class),
 		},
-		componentSlots: normalizeSlots(block.componentSlots, block.id || fallbackId),
+		componentSlots: normalizeSlots(
+			block.componentSlots,
+			block.id || fallbackId
+		),
 		style: normalizeStyle(block.style),
 	};
 }

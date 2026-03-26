@@ -1,63 +1,192 @@
-import type { Manifest } from '@/types/registry';
-import type { RegisterSchema, Registry } from '@/types/registry/core';
+import type { Manifest } from '../../types/registry';
+import type { RegisterSchema, Registry } from '../../types/registry/core';
 import { normalizeManifest } from './manifest/normalize';
 
-/**
- * 单个组件注册入参
- */
 export interface RegisterOptions<T> {
-    /**
-     * 组件 manifest，可以是任意来源的原始数据
-     * 会在内部通过 normalizeManifest 做一次标准化
-     */
-    manifest: Manifest | unknown;
-
-    /**
-     * 组件异步加载器
-     * 平台可根据 source / path 信息构造对应的 import 逻辑
-     */
-    loader: () => Promise<T>;
+	manifest: Manifest | unknown;
+	loader: () => Promise<T>;
 }
 
-/**
- * 基于 manifest 与 loader 构造一个注册表条目
- */
-export function createRegistryEntry<T>({ manifest, loader }: RegisterOptions<T>): Registry<T> {
-    const normalized = normalizeManifest(manifest);
+export type RegistryManifestLoaderResolver<T> = (
+	manifest: Manifest
+) => (() => Promise<T>) | null | undefined;
 
-    return {
-        name: normalized.name,
-        source: normalized.source,
-        loader,
-    };
+export interface CreateRegistryOptions {
+	onConflict?: 'throw' | 'overwrite';
 }
 
-/**
- * 批量创建组件注册表
- * 平台可以在启动时将所有组件的 manifest 与 loader 统一注册
- */
-export function createRegistry<T>(entries: Array<RegisterOptions<T>>): RegisterSchema<T> {
-    const registry: RegisterSchema<T> = {};
+function assignRegistryItem<T>(
+	registry: RegisterSchema<T>,
+	item: Registry<T>,
+	onConflict: CreateRegistryOptions['onConflict'] = 'throw'
+) {
+	if (registry[item.name] && onConflict !== 'overwrite') {
+		throw new Error(`Duplicate registry component name: ${item.name}`);
+	}
 
-    for (const entry of entries) {
-        const item = createRegistryEntry(entry);
-        registry[item.name] = item;
-    }
-
-    return registry;
+	registry[item.name] = item;
 }
 
-/**
- * 从注册表中按名称异步加载组件
- * @throws 当组件未注册时抛出错误
- */
-export async function loadFromRegistry<T>(registry: RegisterSchema<T>, name: string): Promise<T> {
-    const item = registry[name];
+export function createRegistryEntry<T>({
+	manifest,
+	loader,
+}: RegisterOptions<T>): Registry<T> {
+	const normalized = normalizeManifest(manifest);
 
-    if (!item) {
-        throw new Error(`组件未注册: ${name}`);
-    }
-
-    return item.loader();
+	return {
+		name: normalized.name,
+		source: normalized.source,
+		loader,
+	};
 }
 
+export function createRegistry<T>(
+	entries: Array<RegisterOptions<T>>,
+	options: CreateRegistryOptions = {}
+): RegisterSchema<T> {
+	const registry: RegisterSchema<T> = {};
+
+	for (const entry of entries) {
+		const item = createRegistryEntry(entry);
+		assignRegistryItem(registry, item, options.onConflict);
+	}
+
+	return registry;
+}
+
+export async function loadFromRegistry<T>(
+	registry: RegisterSchema<T>,
+	name: string
+): Promise<T> {
+	const item = registry[name];
+
+	if (!item) {
+		throw new Error(`Component is not registered: ${name}`);
+	}
+
+	return item.loader();
+}
+
+export function createRegistryEntriesFromManifests<T>(
+	manifests: Array<Manifest | unknown>,
+	resolveLoader: RegistryManifestLoaderResolver<T>
+): Array<RegisterOptions<T>> {
+	const entries: Array<RegisterOptions<T>> = [];
+
+	for (const manifestValue of manifests) {
+		const manifest = normalizeManifest(manifestValue);
+		const loader = resolveLoader(manifest);
+
+		if (!loader) {
+			continue;
+		}
+
+		entries.push({
+			manifest,
+			loader,
+		});
+	}
+
+	return entries;
+}
+
+export function mergeRegistries<T>(
+	registries: Array<RegisterSchema<T>>,
+	options: CreateRegistryOptions = {}
+): RegisterSchema<T> {
+	const merged = {} as RegisterSchema<T>;
+
+	for (const registry of registries) {
+		for (const item of Object.values(registry)) {
+			assignRegistryItem(merged, item, options.onConflict);
+		}
+	}
+
+	return merged;
+}
+
+export interface RegistryManager<T> {
+	init: () => Promise<void>;
+	getRegistry: (
+		name?: string | string[]
+	) => Registry<T> | Registry<T>[] | RegisterSchema<T> | undefined;
+	load: (name: string) => Promise<T | null>;
+}
+
+interface CreateRegistryManagerOptions<T> {
+	loaders: Array<RegisterSchema<T> | (() => Promise<RegisterSchema<T>>)>;
+	options?: CreateRegistryOptions;
+}
+
+interface CreateRegistryManagerFromEntriesOptions<T> {
+	loaders: Array<
+		Array<RegisterOptions<T>> | (() => Promise<Array<RegisterOptions<T>>>)
+	>;
+	options?: CreateRegistryOptions;
+}
+
+export function createRegistryManager<T>({
+	loaders,
+	options,
+}: CreateRegistryManagerOptions<T>): RegistryManager<T> {
+	let registry: RegisterSchema<T> = {};
+	let initPromise: Promise<void> | null = null;
+
+	async function init() {
+		if (!initPromise) {
+			initPromise = (async () => {
+				const resolved = await Promise.all(
+					loaders.map((loader) =>
+						typeof loader === 'function' ? loader() : loader
+					)
+				);
+
+				registry = mergeRegistries(resolved, options);
+			})();
+		}
+
+		await initPromise;
+	}
+
+	function getRegistry(name?: string | string[]) {
+		if (!name) {
+			return registry;
+		}
+
+		if (Array.isArray(name)) {
+			return name.map((item) => registry[item]).filter(Boolean);
+		}
+
+		return registry[name];
+	}
+
+	async function load(name: string) {
+		const item = registry[name];
+
+		if (!item) {
+			return null;
+		}
+
+		return item.loader().catch(() => null);
+	}
+
+	return {
+		init,
+		getRegistry,
+		load,
+	};
+}
+
+export function createRegistryManagerFromEntries<T>({
+	loaders,
+	options,
+}: CreateRegistryManagerFromEntriesOptions<T>): RegistryManager<T> {
+	return createRegistryManager({
+		loaders: loaders.map((loader) =>
+			typeof loader === 'function'
+				? async () => createRegistry(await loader(), options)
+				: createRegistry(loader, options)
+		),
+		options,
+	});
+}

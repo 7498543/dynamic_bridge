@@ -6,9 +6,8 @@ export default {
 	input: 'src/index.ts',
 	output: {
 		file: 'dist/index.js',
-		format: 'umd',
-		name: 'dynamic_core',
-		indent: 2,
+		format: 'es',
+		sourcemap: false,
 	},
 	plugins: [resolve(), commonjs(), typescript()],
 };

@@ -1,4 +1,4 @@
-import { PageContentSchema, PageLayout } from '@/types/schema';
+import { PageContentSchema, PageLayout } from '../../../types/schema/page';
 import { normalizeBlock } from './block';
 
 export function normalizePage(page: any): PageContentSchema {

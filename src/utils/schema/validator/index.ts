@@ -1,2 +1,2 @@
-export * from './schema';
+export * from './block';
 export * from './page';
